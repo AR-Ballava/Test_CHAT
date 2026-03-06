@@ -3,6 +3,7 @@ package com.e2ee.chat.service;
 import com.e2ee.chat.entity.Contact;
 import com.e2ee.chat.repository.ContactRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContactService {
 
     private final ContactRepo contactRepo;
@@ -23,7 +25,7 @@ public class ContactService {
         contact.setOwnerId(owner);
         contact.setContactUserId(contactUser);
         contact.setCreatedAt(Instant.now());
-
+        log.info("{} contact added successfully for {} ", contactUser, owner);
         return contactRepo.save(contact);
     }
 
