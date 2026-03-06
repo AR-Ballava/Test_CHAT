@@ -28,7 +28,10 @@ public class UserService {
     private final AuthenticationManager authManager;
 
     public ResponseEntity<User> createUser(UserDto userDto){
-        if(userRepo.findByEmail(userDto.email()) != null) return new ResponseEntity<>(new User(), HttpStatus.BAD_REQUEST);
+        if(userRepo.findByEmail(userDto.email()) != null) {
+            log.info("user {} already exist", userDto.email());
+            return new ResponseEntity<>(new User(), HttpStatus.BAD_REQUEST);
+        }
 
         User user = new User();
         user.setUsername(userDto.username());
@@ -36,6 +39,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userDto.password()));
         user.setOnline(false);
         user.setLastSeen(Instant.now());
+        log.info("user successfully register with email {}",userDto.email());
         return new ResponseEntity<>(userRepo.save(user), HttpStatus.CREATED);
     }
 

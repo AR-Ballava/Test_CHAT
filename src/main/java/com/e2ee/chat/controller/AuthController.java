@@ -2,6 +2,8 @@ package com.e2ee.chat.controller;
 
 import com.e2ee.chat.dto.AuthResponse;
 import com.e2ee.chat.dto.LoginDto;
+import com.e2ee.chat.dto.UserDto;
+import com.e2ee.chat.entity.User;
 import com.e2ee.chat.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<User> registerUser(@RequestBody UserDto userDto){
+        return userService.createUser(userDto);
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> getStudent(@RequestBody LoginDto user){

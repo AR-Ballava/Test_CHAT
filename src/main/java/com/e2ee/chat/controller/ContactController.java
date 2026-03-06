@@ -16,17 +16,13 @@ public class ContactController {
     private final ContactService contactService;
 
     @PostMapping("/{contactUser}")
-    public Contact addContact(@PathVariable String contactUser,
-                              Authentication auth){
-
+    public Contact addContact(@PathVariable String contactUser, Authentication auth){
         String owner = auth.getName();
-
         return contactService.addContact(owner,contactUser);
     }
 
     @GetMapping
     public List<Contact> getContacts(Authentication auth){
-
         return contactService.getContacts(auth.getName());
     }
 
