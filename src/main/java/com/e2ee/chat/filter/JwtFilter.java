@@ -2,6 +2,7 @@ package com.e2ee.chat.filter;
 
 import com.e2ee.chat.service.JwtService;
 import com.e2ee.chat.service.UserDetailServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // ⭐ Allow CORS preflight requests
+        // Allow CORS preflight requests
         if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
             filterChain.doFilter(request, response);
             return;
@@ -41,7 +42,19 @@ public class JwtFilter extends OncePerRequestFilter {
         if(authHeader != null && authHeader.startsWith("Bearer ")){
 
             String token = authHeader.substring(7);
-            String username = jwtService.extractUserName(token);
+            String username = null;
+
+            try {
+                username = jwtService.extractUserName(token);
+            } catch (ExpiredJwtException e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token expired");
+                return;
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid token");
+                return;
+            }
 
             if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
 

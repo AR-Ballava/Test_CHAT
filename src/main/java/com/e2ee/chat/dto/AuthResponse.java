@@ -1,4 +1,4 @@
 package com.e2ee.chat.dto;
 
-public record AuthResponse(String token) {
+public record AuthResponse(String accessToken, String refreshToken) {
 }

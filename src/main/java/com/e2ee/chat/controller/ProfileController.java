@@ -5,6 +5,8 @@ import com.e2ee.chat.entity.User;
 import com.e2ee.chat.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -24,9 +26,10 @@ public class ProfileController {
     }
 
     @GetMapping("/{email}")
-    public User getUserProfile(@PathVariable String email){
+    public ResponseEntity<?> getUserProfile(@PathVariable String email){
         log.info("getting profile of user {}", email);
-        return userRepo.findByEmail(email);
+        return ResponseEntity.ok(userRepo.findByEmail(email));
+
     }
 
     @PutMapping("/update")

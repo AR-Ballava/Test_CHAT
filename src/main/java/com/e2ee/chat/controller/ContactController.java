@@ -1,8 +1,12 @@
 package com.e2ee.chat.controller;
 
 import com.e2ee.chat.entity.Contact;
+import com.e2ee.chat.entity.User;
+import com.e2ee.chat.repository.UserRepo;
 import com.e2ee.chat.service.ContactService;
+import com.e2ee.chat.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +20,7 @@ public class ContactController {
     private final ContactService contactService;
 
     @PostMapping("/{contactUser}")
-    public Contact addContact(@PathVariable String contactUser, Authentication auth){
+    public ResponseEntity<?> addContact(@PathVariable String contactUser, Authentication auth){
         String owner = auth.getName();
         return contactService.addContact(owner,contactUser);
     }

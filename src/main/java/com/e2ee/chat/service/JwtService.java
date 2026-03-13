@@ -12,7 +12,6 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 
-
 @Service
 public class JwtService {
 
@@ -22,20 +21,25 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-
-    public String generateToken(String email){
-        HashMap<String, Object> claim = new HashMap<>();
-
+    // ACCESS TOKEN (60 min)
+    public String generateAccessToken(String email){
         return Jwts.builder()
-                .claims()
-                .add(claim)
                 .subject(email)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .and()
+//                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24 * 7))
                 .signWith(secretKey)
                 .compact();
+    }
 
+    // REFRESH TOKEN (7 days)
+    public String generateRefreshToken(String email){
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7))
+                .signWith(secretKey)
+                .compact();
     }
 
     public String extractUserName(String token) {
@@ -43,7 +47,8 @@ public class JwtService {
     }
 
     public boolean validateToken(String token, UserDetails user){
-        return user.getUsername().equals(extractUserName(token)) && extractAllClaims(token).getExpiration().after(new Date());
+        return user.getUsername().equals(extractUserName(token)) &&
+                extractAllClaims(token).getExpiration().after(new Date());
     }
 
     private Claims extractAllClaims(String token){
@@ -53,5 +58,4 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 }

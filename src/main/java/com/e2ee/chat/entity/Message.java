@@ -15,7 +15,7 @@ import java.time.Instant;
 @NoArgsConstructor
 public class Message {
     @Id
-    private String Id;
+    private String id;
 
     private String conversationId;
     private String senderId;
@@ -25,6 +25,4 @@ public class Message {
     private Instant sentAt;
     private Instant deliveredAt;
     private Instant readAt;
-
-
 }
