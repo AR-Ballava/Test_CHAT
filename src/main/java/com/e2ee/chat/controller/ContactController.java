@@ -30,4 +30,13 @@ public class ContactController {
         return contactService.getContacts(auth.getName());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchUsers(
+            @RequestParam String keyword,
+            Authentication auth
+    ) {
+        String currentUser = auth.getName();
+        return ResponseEntity.ok(contactService.searchUsers(keyword, currentUser));
+    }
+
 }

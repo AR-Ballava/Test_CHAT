@@ -1,5 +1,6 @@
 package com.e2ee.chat.controller;
 
+import com.e2ee.chat.dto.MessagePreview;
 import com.e2ee.chat.entity.Message;
 import com.e2ee.chat.enums.MessageStatus;
 import com.e2ee.chat.repository.MessageRepo;
@@ -78,9 +79,26 @@ public class MessageController {
         }
     }
 
+    @PostMapping("/read/conversation/{conversationId}")
+    public void markConversationRead(@PathVariable String conversationId, Authentication auth){
+
+        String currentUser = auth.getName();
+
+        List<Message> messages = messageRepo.findByConversationIdOrderBySentAtAsc(conversationId);
+
+        for(Message msg : messages){
+            if(msg.getReceiverId().equals(currentUser) && msg.getReadAt() == null){
+                msg.setStatus(MessageStatus.READ);
+                msg.setReadAt(Instant.now());
+            }
+        }
+
+        messageRepo.saveAll(messages);
+    }
+
     /*...........Message Preview..............*/
     @GetMapping("/preview")
-    public Map<String, Message> getChatPreview(Authentication auth){
+    public Map<String, MessagePreview> getChatPreview(Authentication auth){
         return chatService.getLastMessages(auth.getName());
     }
 }

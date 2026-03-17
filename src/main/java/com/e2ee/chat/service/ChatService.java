@@ -1,5 +1,6 @@
 package com.e2ee.chat.service;
 
+import com.e2ee.chat.dto.MessagePreview;
 import com.e2ee.chat.entity.Contact;
 import com.e2ee.chat.entity.Conversation;
 import com.e2ee.chat.entity.Message;
@@ -51,19 +52,36 @@ public class ChatService {
         return messageRepo.save(message);
     }
 
-    public Map<String, Message> getLastMessages(String userId){
+    public Map<String, MessagePreview> getLastMessages(String currentUser){
 
-        List<Contact> contacts = contactRepo.findByOwnerId(userId);
-        Map<String, Message> previews = new HashMap<>();
+        Map<String, MessagePreview> previewMap = new HashMap<>();
 
-        for(Contact contact : contacts){
-            String contactUser = contact.getContactUserId();
-            String conversationId = generateConversationId(userId, contactUser);
+        List<Message> messages = messageRepo.findBySenderIdOrReceiverId(currentUser, currentUser);
 
-            Message lastMessage = messageRepo.findTopByConversationIdOrderBySentAtDesc(conversationId);
-            if(lastMessage != null) previews.put(contactUser, lastMessage);
+        for(Message msg : messages){
+
+            String otherUser;
+
+            if(msg.getSenderId().equals(currentUser)){
+                otherUser = msg.getReceiverId();
+            }else if(msg.getReceiverId().equals(currentUser)){
+                otherUser = msg.getSenderId();
+            }else{
+                continue;
+            }
+
+            MessagePreview preview = previewMap.get(otherUser);
+
+            if(preview == null || msg.getSentAt().isAfter(preview.sentAt())){
+
+                long unread = messageRepo.countBySenderIdAndReceiverIdAndReadAtIsNull(otherUser,currentUser);
+                MessagePreview p = new MessagePreview(msg.getSenderId(),msg.getReceiverId(),msg.getContent(), msg.getSentAt(), msg.getStatus(), unread);
+
+                previewMap.put(otherUser, p);
+            }
         }
-        return previews;
+
+        return previewMap;
     }
 
     private String generateConversationId(String user1, String user2) {

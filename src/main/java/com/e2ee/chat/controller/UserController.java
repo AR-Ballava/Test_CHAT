@@ -23,11 +23,11 @@ public class UserController {
         return userService.findAll();
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String query) {
-        List<User> users = userRepo.findTop10ByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
-        return ResponseEntity.ok(users);
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<List<User>> searchUsers(@RequestParam String query) {
+//        List<User> users = userRepo.findTop10ByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+//        return ResponseEntity.ok(users);
+//    }
 
     @GetMapping("/find")
     public ResponseEntity<?> findUserByEmail(@RequestParam String email){

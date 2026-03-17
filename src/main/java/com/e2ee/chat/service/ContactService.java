@@ -6,12 +6,15 @@ import com.e2ee.chat.repository.ContactRepo;
 import com.e2ee.chat.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,28 +24,71 @@ public class ContactService {
     private final ContactRepo contactRepo;
     private final UserRepo userRepo;
 
-    public ResponseEntity<?> addContact(String owner,String contactUser){
+    // ✅ ADD CONTACT (UNCHANGED)
+    public ResponseEntity<?> addContact(String owner, String contactUser){
 
-        if(contactRepo.existsByOwnerIdAndContactUserId(owner,contactUser)){
-            log.info("contact already present in contact list {}", contactUser);
-            return ResponseEntity.badRequest().build();
+        if(contactRepo.existsByOwnerIdAndContactUserId(owner, contactUser)){
+            return ResponseEntity.badRequest().body("Contact already exists");
         }
+
         User user = userRepo.findByEmail(contactUser);
         if(user == null){
-            log.info("Contact is not a register chat user {}", contactUser);
             return ResponseEntity.notFound().build();
         }
 
-        Contact contact = new Contact();
-        contact.setOwnerId(owner);
-        contact.setContactUserId(contactUser);
-        contact.setCreatedAt(Instant.now());
-        log.info("{} contact added successfully for {} ", contactUser, owner);
-        return ResponseEntity.ok(contactRepo.save(contact));
+        Contact contact1 = new Contact();
+        contact1.setOwnerId(owner);
+        contact1.setContactUserId(contactUser);
+        contact1.setCreatedAt(Instant.now());
+
+        contactRepo.save(contact1);
+
+        if(!contactRepo.existsByOwnerIdAndContactUserId(contactUser, owner)){
+            Contact contact2 = new Contact();
+            contact2.setOwnerId(contactUser);
+            contact2.setContactUserId(owner);
+            contact2.setCreatedAt(Instant.now());
+            contactRepo.save(contact2);
+        }
+
+        return ResponseEntity.ok(contact1);
+    }
+
+    // 🔥 SEARCH USERS (FINAL)
+    public List<User> searchUsers(String keyword, String currentUser) {
+
+        String regex = "^" + keyword;   // 🔥 FIX
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<User> users = userRepo.searchUsers(regex, pageable);
+
+        List<Contact> contacts = contactRepo.findByOwnerId(currentUser);
+
+        Set<String> existingContacts = contacts.stream()
+                .map(Contact::getContactUserId)
+                .collect(Collectors.toSet());
+
+        return users.stream()
+                .filter(u -> !u.getEmail().equals(currentUser))
+                .filter(u -> !existingContacts.contains(u.getEmail()))
+                .sorted((a, b) -> {
+                    String k = keyword.toLowerCase();
+
+                    boolean aStarts = a.getEmail().toLowerCase().startsWith(k)
+                            || a.getUsername().toLowerCase().startsWith(k);
+
+                    boolean bStarts = b.getEmail().toLowerCase().startsWith(k)
+                            || b.getUsername().toLowerCase().startsWith(k);
+
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+                    return 0;
+                })
+                .toList();
     }
 
     public List<Contact> getContacts(String owner){
         return contactRepo.findByOwnerId(owner);
     }
-
 }

@@ -1,10 +1,9 @@
 package com.e2ee.chat.controller;
 
-import com.e2ee.chat.dto.AuthResponse;
-import com.e2ee.chat.dto.LoginDto;
-import com.e2ee.chat.dto.RegisterDto;
+import com.e2ee.chat.dto.*;
 import com.e2ee.chat.entity.User;
 import com.e2ee.chat.service.AuthService;
+import com.e2ee.chat.service.EmailOtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +17,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailOtpService emailOtpService;
 
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody RegisterDto registerDto){
@@ -34,6 +34,31 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> body){
         return authService.refreshToken(body.get("refreshToken"));
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody RegisterRequest request){
+        return emailOtpService.sendOtp(request);
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request){
+        return emailOtpService.verifyOtp(request);
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody EmailRequest request){
+        return emailOtpService.resendOtp(request);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request){
+        return emailOtpService.sendForgotPasswordOtp(request);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request){
+        return emailOtpService.resetPassword(request);
     }
 
 }
